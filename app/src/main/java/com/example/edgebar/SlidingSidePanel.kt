@@ -1,6 +1,7 @@
 package com.example.edgebar
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +20,9 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -139,20 +142,24 @@ import kotlin.math.roundToInt
 
 @Composable
 fun SlidingPanel(
-    viewModel: SlidingPanelViewModel = viewModel()
+    viewModel: SlidingPanelViewModel, onPanelStateChange: (Boolean) -> Unit
 ) {
-    val isPanelOpen by viewModel.isPanelOpen
-    val panelWidth = 150.dp // Define the panel width
-    val panelHeight = 300.dp // Define the panel height
+    val isPanelVisible by viewModel.isPanelVisible
+    val panelWidth = 250.dp // Define the panel width
+    val panelHeight = 400.dp // Define the panel height
     val verticalOffset = 100.dp // Distance from the top of the screen
     val panelWidthPx = with(LocalDensity.current) { panelWidth.toPx() }
-    val panelOffsetX = remember { Animatable(if (isPanelOpen) 0f else -panelWidthPx) }
+    val panelOffsetX = remember { Animatable(if (isPanelVisible) 0f else -panelWidthPx) }
     val scope = rememberCoroutineScope()
 
     // States for sliders and toggle
-    var sliderValue1 by remember { mutableStateOf(0.6f) }
-    var sliderValue2 by remember { mutableStateOf(0.6f) }
-    var toggleState by remember { mutableStateOf(false) }
+//    var sliderValue1 by remember { mutableFloatStateOf(0.6f) }
+//    var sliderValue2 by remember { mutableFloatStateOf(0.6f) }
+//    var toggleState by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isPanelVisible) {
+        panelOffsetX.animateTo(if (isPanelVisible) 0f else -panelWidthPx, tween(300))
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Main content
@@ -163,7 +170,9 @@ fun SlidingPanel(
         // Gesture detection for dragging
         Box(
             modifier = Modifier
-                .fillMaxSize()
+//                .fillMaxSize()
+                .width(100.dp) // Wider region for gesture detection
+                .height(500.dp)
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(
                         onDragEnd = {
@@ -171,14 +180,17 @@ fun SlidingPanel(
                             scope.launch {
                                 if (panelOffsetX.value > -panelWidthPx / 2) {
                                     viewModel.openPanel()
-                                    panelOffsetX.animateTo(0f) // Fully open
+//                                    panelOffsetX.animateTo(0f) // Fully open
+                                    onPanelStateChange(true)
                                 } else {
                                     viewModel.closePanel()
-                                    panelOffsetX.animateTo(-panelWidthPx) // Fully closed
+//                                    panelOffsetX.animateTo(-panelWidthPx) // Fully closed
+                                    onPanelStateChange(false)
                                 }
                             }
                         },
                         onHorizontalDrag = { change, dragAmount ->
+                            println("Drag detected: $dragAmount")
                             change.consume()
                             scope.launch {
                                 panelOffsetX.snapTo(
@@ -213,8 +225,8 @@ fun SlidingPanel(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Switch(
-                        checked = toggleState,
-                        onCheckedChange = { toggleState = it }
+                        checked = viewModel.toggleState.value,
+                        onCheckedChange = { viewModel.updateToggleState(it) }
                     )
                 }
 
@@ -235,9 +247,8 @@ fun SlidingPanel(
                             .graphicsLayer { rotationZ = -90f }
                     ) {
                         Slider(
-                            value = sliderValue1,
-                            onValueChange = { sliderValue1 = it },
-                            modifier = Modifier.fillMaxHeight()
+                            value = viewModel.sliderValue1.value,
+                            onValueChange = { viewModel.updateSlider1(it) }
                         )
                     }
 
@@ -249,9 +260,8 @@ fun SlidingPanel(
                             .graphicsLayer { rotationZ = -90f }
                     ) {
                         Slider(
-                            value = sliderValue2,
-                            onValueChange = { sliderValue2 = it },
-                            modifier = Modifier.fillMaxHeight()
+                            value = viewModel.sliderValue2.value,
+                            onValueChange = { viewModel.updateSlider2(it) }
                         )
                     }
                 }

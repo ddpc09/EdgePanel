@@ -10,81 +10,127 @@ import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.WindowManager
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import android.view.View
-import androidx.compose.material3.Text
-import androidx.lifecycle.LifecycleService
-import androidx.savedstate.SavedStateRegistry
-import androidx.savedstate.SavedStateRegistryController
-import androidx.savedstate.SavedStateRegistryOwner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
-class FloatingPanelService : Service(), LifecycleOwner {
+
+class FloatingPanelService : Service(), ViewModelStoreOwner {
 
     private lateinit var windowManager: WindowManager
     private lateinit var floatingPanelView: ComposeView
-    private val lifecycleRegistry = LifecycleRegistry(this)
+    private val lifecycleManager = FloatingPanelLifecycleManager()
+//    private val viewModelStore = CustomViewModelStoreOwner()
+    private lateinit var viewModel: SlidingPanelViewModel // lateinit variable
+    override val viewModelStore = ViewModelStore()
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private val layoutParams = WindowManager.LayoutParams(
+        50, // Initial width set to 0
+        WindowManager.LayoutParams.MATCH_PARENT,
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        else
+            WindowManager.LayoutParams.TYPE_PHONE,
+        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+        android.graphics.PixelFormat.TRANSLUCENT
+    ).apply {
+        gravity = Gravity.START or Gravity.TOP
+    }
+
+
+
 
     override fun onCreate() {
         super.onCreate()
-        lifecycleRegistry.currentState = Lifecycle.State.CREATED
+        lifecycleManager.setLifecycleState(Lifecycle.State.CREATED)
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        viewModel = ViewModelProvider(this)[SlidingPanelViewModel::class.java]
 
-//         Set up the floating panel view
+
+
+
+
+
+        // Set up the floating panel view
         floatingPanelView = ComposeView(this).apply {
-            // Attach LifecycleOwner to the ComposeView
-            ViewTreeLifecycleOwner.set(this, this@FloatingPanelService)
+            // Attach lifecycle and saved state registry owners
+//            ViewTreeLifecycleOwner.set(this, lifecycleManager)
+//            ViewTreeSavedStateRegistryOwner.set(this, lifecycleManager)
+            setViewTreeLifecycleOwner(lifecycleOwner = lifecycleManager)
+            setViewTreeSavedStateRegistryOwner(owner = lifecycleManager)
+            setViewTreeViewModelStoreOwner(viewModelStoreOwner = this@FloatingPanelService)
+
 
             setContent {
-                SlidingPanel() // Replace with your composable content
+                SlidingPanel(
+                    viewModel = viewModel,
+                    onPanelStateChange = { isVisible ->
+                        updatePanelVisibility(isVisible)
+                    }
+                ) // Replace with your composable content
             }
         }
+        windowManager.addView(floatingPanelView, layoutParams)
 
-//        floatingPanelView = ComposeView(this).apply {
-//            setViewTreeSavedStateRegistryOwner(this@FloatingPanelService)
-//            setContent {
-//                SlidingPanel()
-//            }
-//        }
-//        ViewTreeLifecycleOwner.set(contentView, this)
+        observePanelVisibility()
+    }
 
         // Configure window layout parameters
-        val layoutParams = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else
-                WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            android.graphics.PixelFormat.TRANSLUCENT
-        )
-        layoutParams.gravity = Gravity.TOP or Gravity.START
-        layoutParams.x = 0
-        layoutParams.y = 100
+//        val layoutParams = WindowManager.LayoutParams(
+//            WindowManager.LayoutParams.WRAP_CONTENT,
+//            WindowManager.LayoutParams.WRAP_CONTENT,
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+//                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+//            else
+//                WindowManager.LayoutParams.TYPE_PHONE,
+//            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+//            android.graphics.PixelFormat.TRANSLUCENT
+//        )
 
-        windowManager.addView(floatingPanelView, layoutParams)
-    }
+//        val layoutParams = WindowManager.LayoutParams(
+//            WindowManager.LayoutParams.WRAP_CONTENT,
+//            WindowManager.LayoutParams.WRAP_CONTENT,
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+//                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+//            else
+//                WindowManager.LayoutParams.TYPE_PHONE,
+//            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, // Allows touch events to pass through
+//            android.graphics.PixelFormat.TRANSLUCENT
+//        )
+//        layoutParams.gravity = Gravity.TOP or Gravity.START
+//        layoutParams.x = 0
+//        layoutParams.y = 100
+//
+//        windowManager.addView(floatingPanelView, layoutParams)
+//    }
+
+
 
     @SuppressLint("ForegroundServiceType")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createNotificationChannel()
         startForeground(1, createNotification())
-        lifecycleRegistry.currentState = Lifecycle.State.STARTED
+        lifecycleManager.setLifecycleState(Lifecycle.State.STARTED)
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+        lifecycleManager.setLifecycleState(Lifecycle.State.DESTROYED)
         if (::floatingPanelView.isInitialized) {
             windowManager.removeView(floatingPanelView)
         }
@@ -92,8 +138,31 @@ class FloatingPanelService : Service(), LifecycleOwner {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    override val lifecycle: Lifecycle
-        get() = lifecycleRegistry
+    private fun observePanelVisibility() {
+        serviceScope.launch {
+            snapshotFlow { viewModel.isPanelVisible.value }
+                .collect { isVisible ->
+                    updatePanelVisibility(isVisible)
+                }
+        }
+    }
+
+    private fun updatePanelVisibility(isVisible: Boolean) {
+        if (isVisible) {
+            // Expand width and allow interaction
+            layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT
+            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        } else {
+            // Collapse width and allow pass-through interaction
+            layoutParams.width = 50
+            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        }
+        windowManager.updateViewLayout(floatingPanelView, layoutParams)
+    }
+
+
+
+
 
     private fun createNotification(): Notification {
         val notificationBuilder = Notification.Builder(this)
@@ -120,3 +189,5 @@ class FloatingPanelService : Service(), LifecycleOwner {
         }
     }
 }
+
+
