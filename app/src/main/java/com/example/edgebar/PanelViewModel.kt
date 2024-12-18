@@ -1,13 +1,14 @@
 package com.example.edgebar
 
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 
 class SlidingPanelViewModel : ViewModel() {
     val isPanelVisible = mutableStateOf(false)
 
-    val sliderValue1 = mutableStateOf(0.5f) // Slider 1 value
-    val sliderValue2 = mutableStateOf(0.5f) // Slider 2 value
+    val sliderValue1 = mutableFloatStateOf(0.5f) // Slider 1 value
+    val sliderValue2 = mutableFloatStateOf(0.5f) // Slider 2 value
     val toggleState = mutableStateOf(false) // Toggle switch state
 
     fun openPanel() {

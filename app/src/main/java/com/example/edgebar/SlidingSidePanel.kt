@@ -140,9 +140,142 @@ import kotlin.math.roundToInt
 //    }
 //}
 
+//@Composable
+//fun SlidingPanel(
+//    viewModel: SlidingPanelViewModel, onPanelStateChange: (Boolean) -> Unit
+//) {
+//    val isPanelVisible by viewModel.isPanelVisible
+//    val panelWidth = 250.dp // Define the panel width
+//    val panelHeight = 400.dp // Define the panel height
+//    val verticalOffset = 100.dp // Distance from the top of the screen
+//    val panelWidthPx = with(LocalDensity.current) { panelWidth.toPx() }
+//    val panelOffsetX = remember { Animatable(if (isPanelVisible) 0f else -panelWidthPx) }
+//    val scope = rememberCoroutineScope()
+//
+//    // States for sliders and toggle
+////    var sliderValue1 by remember { mutableFloatStateOf(0.6f) }
+////    var sliderValue2 by remember { mutableFloatStateOf(0.6f) }
+////    var toggleState by remember { mutableStateOf(false) }
+//
+//    LaunchedEffect(isPanelVisible) {
+//        panelOffsetX.animateTo(if (isPanelVisible) 0f else -panelWidthPx, tween(300))
+//    }
+//
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        // Main content
+//        Column(modifier = Modifier.fillMaxSize()) {
+//            Text("Main Content", modifier = Modifier.padding(8.dp))
+//        }
+//
+//        // Gesture detection for dragging
+//        Box(
+//            modifier = Modifier
+////                .fillMaxSize()
+//                .width(50.dp) // Wider region for gesture detection
+//                .height(500.dp)
+//                .pointerInput(Unit) {
+//                    detectHorizontalDragGestures(
+//                        onDragEnd = {
+//                            // Snap to open or close depending on drag position
+//                            scope.launch {
+//                                if (panelOffsetX.value > -panelWidthPx / 2) {
+//                                    panelOffsetX.animateTo(0f, tween(300)) // Fully open
+//                                    viewModel.openPanel()
+//                                    onPanelStateChange(true)
+//                                } else {
+//                                    panelOffsetX.animateTo(-panelWidthPx, tween(300)) // Fully closed
+//                                    viewModel.closePanel()
+//                                    onPanelStateChange(false)
+//                                }
+//
+//                            }
+//                        },
+//                        onHorizontalDrag = { change, dragAmount ->
+//                            println("Drag detected: $dragAmount")
+//                            change.consume()
+//                            scope.launch {
+//                                panelOffsetX.snapTo(
+//                                    (panelOffsetX.value + dragAmount).coerceIn(-panelWidthPx, 0f)
+//                                )
+//                            }
+//                        }
+//                    )
+//                }
+//        )
+//
+//        // Sliding panel with adjusted starting position
+//        Box(
+//            modifier = Modifier
+//                .offset(y = verticalOffset) // Position the panel lower from the top
+//                .height(panelHeight) // Reduced height
+//                .width(panelWidth)
+//                .offset { IntOffset(panelOffsetX.value.roundToInt(), 0) }
+//                .background(Color.Gray)
+//        ) {
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(8.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                // Toggle Switch at the center
+//                Row(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(bottom = 8.dp),
+//                    horizontalArrangement = Arrangement.Center
+//                ) {
+//                    Switch(
+//                        checked = viewModel.toggleState.value,
+//                        onCheckedChange = { viewModel.updateToggleState(it) }
+//                    )
+//                }
+//
+//                Spacer(modifier = Modifier.height(8.dp))
+//
+//                // Horizontal Sliders
+//                Row(
+//                    modifier = Modifier
+//                        .fillMaxHeight(),
+//                    horizontalArrangement = Arrangement.SpaceEvenly,
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    // First Vertical Slider
+//                    Box(
+//                        modifier = Modifier
+//                            .height(400.dp) // Increased height for larger slider
+//                            .width(60.dp) // Increased width for better interaction
+//                            .graphicsLayer { rotationZ = -90f }
+//                    ) {
+//                        Slider(
+//                            value = viewModel.sliderValue1.value,
+//                            onValueChange = { viewModel.updateSlider1(it) }
+//                        )
+//                    }
+//
+//                    // Second Vertical Slider
+//                    Box(
+//                        modifier = Modifier
+//                            .height(400.dp) // Increased height for larger slider
+//                            .width(60.dp) // Increased width for better interaction
+//                            .graphicsLayer { rotationZ = -90f }
+//                    ) {
+//                        Slider(
+//                            value = viewModel.sliderValue2.value,
+//                            onValueChange = { viewModel.updateSlider2(it) }
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
+
 @Composable
 fun SlidingPanel(
-    viewModel: SlidingPanelViewModel, onPanelStateChange: (Boolean) -> Unit
+    viewModel: SlidingPanelViewModel,
+//    onPanelStateChange: (Boolean) -> Unit
 ) {
     val isPanelVisible by viewModel.isPanelVisible
     val panelWidth = 250.dp // Define the panel width
@@ -152,63 +285,53 @@ fun SlidingPanel(
     val panelOffsetX = remember { Animatable(if (isPanelVisible) 0f else -panelWidthPx) }
     val scope = rememberCoroutineScope()
 
-    // States for sliders and toggle
-//    var sliderValue1 by remember { mutableFloatStateOf(0.6f) }
-//    var sliderValue2 by remember { mutableFloatStateOf(0.6f) }
-//    var toggleState by remember { mutableStateOf(false) }
-
     LaunchedEffect(isPanelVisible) {
         panelOffsetX.animateTo(if (isPanelVisible) 0f else -panelWidthPx, tween(300))
+        println("Panel visibility changed: $isPanelVisible")
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Main content
-        Column(modifier = Modifier.fillMaxSize()) {
-            Text("Main Content", modifier = Modifier.padding(8.dp))
-        }
-
         // Gesture detection for dragging
         Box(
             modifier = Modifier
-//                .fillMaxSize()
-                .width(100.dp) // Wider region for gesture detection
-                .height(500.dp)
+                .fillMaxHeight()
+                .width(50.dp) // Wider region for gesture detection
+                .align(Alignment.CenterStart) // Ensure it aligns to the screen edge
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(
-                        onDragEnd = {
-                            // Snap to open or close depending on drag position
-                            scope.launch {
-                                if (panelOffsetX.value > -panelWidthPx / 2) {
-                                    viewModel.openPanel()
-//                                    panelOffsetX.animateTo(0f) // Fully open
-                                    onPanelStateChange(true)
-                                } else {
-                                    viewModel.closePanel()
-//                                    panelOffsetX.animateTo(-panelWidthPx) // Fully closed
-                                    onPanelStateChange(false)
-                                }
-                            }
-                        },
-                        onHorizontalDrag = { change, dragAmount ->
-                            println("Drag detected: $dragAmount")
-                            change.consume()
+                        onHorizontalDrag = { _, dragAmount ->
+                            println("Drag detected: $dragAmount") // Debugging log
                             scope.launch {
                                 panelOffsetX.snapTo(
                                     (panelOffsetX.value + dragAmount).coerceIn(-panelWidthPx, 0f)
                                 )
                             }
+                        },
+                        onDragEnd = {
+                            println("Drag ended with offset: ${panelOffsetX.value}") // Debugging log
+                            scope.launch {
+                                if (panelOffsetX.value > -panelWidthPx / 2) {
+                                    panelOffsetX.animateTo(0f, tween(300)) // Fully open
+                                    viewModel.openPanel()
+//                                    onPanelStateChange(true)
+                                } else {
+                                    panelOffsetX.animateTo(-panelWidthPx, tween(300)) // Fully closed
+                                    viewModel.closePanel()
+//                                    onPanelStateChange(false)
+                                }
+                            }
                         }
                     )
                 }
+                .background(Color.Transparent) // Transparent for interaction, visible for debugging
         )
 
         // Sliding panel with adjusted starting position
         Box(
             modifier = Modifier
-                .offset(y = verticalOffset) // Position the panel lower from the top
+                .offset { IntOffset(panelOffsetX.value.roundToInt(), verticalOffset.roundToPx()) }
                 .height(panelHeight) // Reduced height
                 .width(panelWidth)
-                .offset { IntOffset(panelOffsetX.value.roundToInt(), 0) }
                 .background(Color.Gray)
         ) {
             Column(
@@ -269,3 +392,5 @@ fun SlidingPanel(
         }
     }
 }
+
+

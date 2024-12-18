@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 
@@ -39,16 +40,16 @@ class FloatingPanelService : Service(), ViewModelStoreOwner {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val layoutParams = WindowManager.LayoutParams(
-        50, // Initial width set to 0
+        100, // Small width for the edge panel
         WindowManager.LayoutParams.MATCH_PARENT,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         else
             WindowManager.LayoutParams.TYPE_PHONE,
-        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, // Always interactive
         android.graphics.PixelFormat.TRANSLUCENT
     ).apply {
-        gravity = Gravity.START or Gravity.TOP
+        gravity = Gravity.START or Gravity.TOP // Align to the left edge of the screen
     }
 
 
@@ -76,17 +77,18 @@ class FloatingPanelService : Service(), ViewModelStoreOwner {
 
 
             setContent {
-                SlidingPanel(
-                    viewModel = viewModel,
-                    onPanelStateChange = { isVisible ->
-                        updatePanelVisibility(isVisible)
-                    }
-                ) // Replace with your composable content
+//                SlidingPanel(
+//                    viewModel = viewModel,
+//                    onPanelStateChange = { isVisible ->
+//                        updatePanelVisibility(isVisible)
+//                    }
+//                ) // Replace with your composable content
+                SlidingPanel(viewModel)
             }
         }
         windowManager.addView(floatingPanelView, layoutParams)
 
-        observePanelVisibility()
+//        observePanelVisibility()
     }
 
         // Configure window layout parameters
@@ -138,27 +140,26 @@ class FloatingPanelService : Service(), ViewModelStoreOwner {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun observePanelVisibility() {
-        serviceScope.launch {
-            snapshotFlow { viewModel.isPanelVisible.value }
-                .collect { isVisible ->
-                    updatePanelVisibility(isVisible)
-                }
-        }
-    }
-
-    private fun updatePanelVisibility(isVisible: Boolean) {
-        if (isVisible) {
-            // Expand width and allow interaction
-            layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT
-            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        } else {
-            // Collapse width and allow pass-through interaction
-            layoutParams.width = 50
-            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-        }
-        windowManager.updateViewLayout(floatingPanelView, layoutParams)
-    }
+//    private fun observePanelVisibility() {
+//        serviceScope.launch {
+//            snapshotFlow { viewModel.isPanelVisible.value }
+//                .collect { isVisible ->
+//                    updatePanelVisibility(isVisible)
+//                }
+//        }
+//    }
+//
+//    private fun updatePanelVisibility(isVisible: Boolean) {
+//        if (isVisible) {
+//            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+//            layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT // Expand width
+//        } else {
+//            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+//            layoutParams.width = 50 // Gesture detection width
+//        }
+//        println("Updating panel visibility to: $isVisible") // Debug log
+//        windowManager.updateViewLayout(floatingPanelView, layoutParams)
+//    }
 
 
 
@@ -189,5 +190,7 @@ class FloatingPanelService : Service(), ViewModelStoreOwner {
         }
     }
 }
+
+
 
 
