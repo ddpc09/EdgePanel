@@ -31,6 +31,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Text("Requesting permission to display the floating panel...")
+
+
         }
     }
 

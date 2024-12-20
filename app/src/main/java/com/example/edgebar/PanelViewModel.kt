@@ -19,7 +19,7 @@ class SlidingPanelViewModel : ViewModel() {
         isPanelVisible.value = false
     }
 
-    // Methods to update slider values
+//     Methods to update slider values
     fun updateSlider1(value: Float) {
         sliderValue1.value = value
     }
@@ -32,4 +32,5 @@ class SlidingPanelViewModel : ViewModel() {
     fun updateToggleState(state: Boolean) {
         toggleState.value = state
     }
+
 }
