@@ -246,8 +246,8 @@ class FloatingPanelService : Service(), ViewModelStoreOwner {
 //                        updatePanelVisibility(isVisible)
 //                    }
 //                ) // Replace with your composable content
-                SlidingPanel(viewModel) { width ->
-                    updatePanelWidth(width)
+                SlidingPanel(viewModel) { isOpen ->
+                    updatePanelLayout(isOpen)
                 }
 
 //                SlidingPanel(viewModel) { width ->
@@ -282,8 +282,23 @@ class FloatingPanelService : Service(), ViewModelStoreOwner {
 
 
 
-    private fun updatePanelWidth(width: Int) {
-        layoutParams.width = width
+//    private fun updatePanelWidth(width: Int, height: Int) {
+//        layoutParams.width = width
+//        layoutParams.height = height
+//        windowManager.updateViewLayout(floatingPanelView, layoutParams)
+//    }
+
+
+    private fun updatePanelLayout(isOpen: Boolean) {
+        if (isOpen) {
+            // Set to full screen when the panel is open
+            layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
+            layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT
+        } else {
+            // Set to edge size when the panel is closed
+            layoutParams.width = 50
+            layoutParams.height = 600
+        }
         windowManager.updateViewLayout(floatingPanelView, layoutParams)
     }
 

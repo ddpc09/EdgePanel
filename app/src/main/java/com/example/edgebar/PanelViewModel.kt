@@ -9,7 +9,9 @@ class SlidingPanelViewModel : ViewModel() {
 
     val sliderValue1 = mutableFloatStateOf(0.5f) // Slider 1 value
     val sliderValue2 = mutableFloatStateOf(0.5f) // Slider 2 value
-    val toggleState = mutableStateOf(false) // Toggle switch state
+    val toggleState1 = mutableStateOf(false) // Toggle switch state
+    val toggleState2 = mutableStateOf(false) // Toggle switch state
+
 
     fun openPanel() {
         isPanelVisible.value = true
@@ -29,8 +31,12 @@ class SlidingPanelViewModel : ViewModel() {
     }
 
     // Method to update toggle state
-    fun updateToggleState(state: Boolean) {
-        toggleState.value = state
+    fun updateToggleState1(state: Boolean) {
+        toggleState1.value = state
+    }
+
+    fun updateToggleState2(state: Boolean) {
+        toggleState2.value = state
     }
 
 }
