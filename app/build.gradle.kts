@@ -65,4 +65,6 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-service:2.8.7")
     implementation ("androidx.savedstate:savedstate:1.2.1")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7")
+    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.compose.foundation:foundation:1.7.6")
 }

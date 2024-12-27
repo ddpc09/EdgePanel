@@ -218,7 +218,7 @@ class FloatingPanelService : Service(), ViewModelStoreOwner {
         WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, // Always interactive
         android.graphics.PixelFormat.TRANSLUCENT
     ).apply {
-        gravity = Gravity.START or Gravity.TOP // Align to the left edge of the screen
+        gravity = Gravity.END or Gravity.TOP // Align to the left edge of the screen
     }
 
 
