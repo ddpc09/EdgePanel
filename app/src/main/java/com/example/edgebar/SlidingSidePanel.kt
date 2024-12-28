@@ -45,7 +45,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.input.pointer.pointerInput
@@ -109,6 +111,12 @@ fun SlidingPanel(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
+//                    .border(1.dp, color = Color.LightGray.copy(alpha = 0.2f), shape = RoundedCornerShape(
+//                        topStart = 63.86111831665039.dp,
+//                        topEnd = 0.dp,
+//                        bottomStart = 63.86111831665039.dp,
+//                        bottomEnd = 0.dp
+//                    ))
 
             ) {
                 Spacer(modifier = Modifier.height(20.dp))
@@ -168,12 +176,12 @@ fun SlidingPanel(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(30.dp),
+                        .height(20.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ){
                   Column(modifier = Modifier
@@ -204,14 +212,14 @@ fun SlidingPanel(
                 // Two columns evenly placed side by side
                 Row(
                     modifier = Modifier
-                        .height(230.dp),
+                        .height(220.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Column(
                         modifier = Modifier
                             .weight(1f)
                             .zIndex(1f)
-                            .fillMaxHeight()
+                            .fillMaxHeight(),
 //                            .clip(
 //                                RoundedCornerShape(
 //                                    topStart = 26.041950225830078.dp,
@@ -220,18 +228,18 @@ fun SlidingPanel(
 //                                    bottomEnd = 26.041950225830078.dp
 //                                )
 //                            )
-                            .clip(
-                                RoundedCornerShape(
-                                    topStart = 13.041950225830078.dp,
-                                    topEnd = 13.041950225830078.dp,
-                                    bottomStart = 13.041950225830078.dp,
-                                    bottomEnd = 13.041950225830078.dp
-                                )
-                            )
-
-
-//                            .background(Color(red = 0f, green = 0f, blue = 0f, alpha = 0.38f)),
-                            .background(Transparent),
+//                            .clip(
+//                                RoundedCornerShape(
+//                                    topStart = 13.041950225830078.dp,
+//                                    topEnd = 13.041950225830078.dp,
+//                                    bottomStart = 13.041950225830078.dp,
+//                                    bottomEnd = 13.041950225830078.dp
+//                                )
+//                            )
+//
+//
+////                            .background(Color(red = 0f, green = 0f, blue = 0f, alpha = 0.38f)),
+//                            .background(Transparent),
 //                            .background(Color.LightGray),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -243,7 +251,7 @@ fun SlidingPanel(
                             modifier = Modifier
                                 .weight(1f)
 
-                                .height(190.dp)
+                                .height(180.dp)
                         )
 
 
@@ -254,21 +262,21 @@ fun SlidingPanel(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxHeight()
+                            .fillMaxHeight(),
 //                            .background(Color.LightGray),
-                            .clip(
-                                RoundedCornerShape(
-                                    topStart = 13.041950225830078.dp,
-                                    topEnd = 13.041950225830078.dp,
-                                    bottomStart = 13.041950225830078.dp,
-                                    bottomEnd = 13.041950225830078.dp
-                                )
-                            )
-                            .background(Color.Transparent)
-
-                            .padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
-
-                            .alpha(1f),
+//                            .clip(
+//                                RoundedCornerShape(
+//                                    topStart = 13.041950225830078.dp,
+//                                    topEnd = 13.041950225830078.dp,
+//                                    bottomStart = 13.041950225830078.dp,
+//                                    bottomEnd = 13.041950225830078.dp
+//                                )
+//                            )
+//                            .background(Color.Transparent)
+//
+//                            .padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
+//
+//                            .alpha(1f),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -277,7 +285,7 @@ fun SlidingPanel(
                             onValueChange = { viewModel.updateSlider2(it) },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(190.dp)
+                                .height(180.dp)
                         )
 
                     }
@@ -559,16 +567,20 @@ fun BrightnessSlider(
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
     sliderHeight: Dp = 200.dp,
+    gradientHeight: Dp = 200.dp,
     thumbSize: Dp = 60.dp,
     thumbWidth: Dp = 70.dp,
     thumbHeight: Dp = 30.dp,
-    thumbColor: Color = Color.White,
+    thumbColor: Color = Color.LightGray,
     trackWidth: Dp = 60.dp,
     filledTrackColor: Color = Color.White,
     unfilledTrackColor: Color = Color.DarkGray,
-    textColor: Color = Color.White
+    gradientColors: List<Color> = listOf(Color.White,Color.LightGray),
+    textColor: Color = Color.White,
+
 ) {
     val sliderHeightPx = with(LocalDensity.current) { sliderHeight.toPx() }
+    val gradientHeightPx= with(LocalDensity.current) { sliderHeight.toPx() }
     val thumbSizePx = with(LocalDensity.current) { thumbSize.toPx() }
     val scope = rememberCoroutineScope()
 
@@ -623,7 +635,11 @@ fun BrightnessSlider(
                 .fillMaxHeight(fraction = value)
                 .width(trackWidth)
                 .align(Alignment.BottomCenter) // Align the filled track to the bottom
-                .background(filledTrackColor,
+                .background(brush = Brush.verticalGradient(
+                    colors = gradientColors,
+                    startY = 0f,
+                    endY = gradientHeightPx,
+                ),
                     shape =
                     RoundedCornerShape(
                         topStart = 0.dp,
@@ -675,6 +691,7 @@ fun WarmthSlider(
         blue = 0.639f,
         alpha = 1f
     ),
+    gradientColors: List<Color> = listOf(Color.White,Color.Yellow),
     unfilledTrackColor: Color = Color.DarkGray,
     textColor: Color = Color.White
 ) {
@@ -722,7 +739,11 @@ fun WarmthSlider(
                 .fillMaxHeight(fraction = value)
                 .width(trackWidth)
                 .align(Alignment.BottomCenter) // Align the filled track to the bottom
-                .background(filledTrackColor, shape =
+                .background(brush = Brush.verticalGradient(
+                    colors = gradientColors,
+                    startY = 0f,
+                    endY = sliderHeightPx
+                ), shape =
                 RoundedCornerShape(
                     20.dp
                 )) // Adjusted corner radius
@@ -748,5 +769,6 @@ fun WarmthSlider(
         )
     }
 }
+
 
 
