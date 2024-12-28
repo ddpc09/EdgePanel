@@ -4,11 +4,13 @@ import android.annotation.SuppressLint
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -43,11 +45,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -64,16 +69,16 @@ fun SlidingPanel(
     updatePanelState: (Boolean) -> Unit // Callback to update panel layout state
 ) {
     val scope = rememberCoroutineScope()
-    val panelHeight = 500.dp
+    val panelHeight = 530.dp
     val panelWidthPx = with(LocalDensity.current) { 250.dp.toPx() }
 //    val panelOffsetX = remember { Animatable(panelWidthPx) } // Start fully closed
-    val screenWidthPx =
-        with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() } // Screen width in pixels
-    val panelOffsetX = remember { Animatable(screenWidthPx) }
+    var screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() } // Screen width in pixels
+    var panelOffsetX = remember { Animatable(screenWidthPx) }
     val dragThreshold = 50f
     var accumulatedDrag by remember { mutableFloatStateOf(0f) }
     val detectionBoxOffsetX = remember { Animatable(panelWidthPx) }
-
+    val configuration = LocalConfiguration.current
+    val orientation = configuration.orientation
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -98,28 +103,29 @@ fun SlidingPanel(
 
 
                 .background(Color(red = 0f, green = 0f, blue = 0f, alpha = 0.65f))
-                .zIndex(1f)
+
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
-                    .zIndex(1f)
+
             ) {
+                Spacer(modifier = Modifier.height(20.dp))
                 // Row at the top
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(40.dp)
+                        .height(60.dp),
 //                        .background(Color.Gray)
-                        .clip(
-                            RoundedCornerShape(
-                                topStart = 162.8787841796875.dp,
-                                topEnd = 162.8787841796875.dp,
-                                bottomStart = 162.8787841796875.dp,
-                                bottomEnd = 162.8787841796875.dp
-                            )
-                        )
+//                        .clip(
+//                            RoundedCornerShape(
+//                                topStart = 162.8787841796875.dp,
+//                                topEnd = 162.8787841796875.dp,
+//                                bottomStart = 162.8787841796875.dp,
+//                                bottomEnd = 162.8787841796875.dp
+//                            )
+//                        )
 //                        .background(
 //                            Color(
 //                                red = 0.4745098f,
@@ -128,35 +134,77 @@ fun SlidingPanel(
 //                                alpha = 1f
 //                            )
 //                        )
-                        .background(Transparent)
+//                        .background(Transparent)
+//
+//                        .padding(
+//                            start = 6.515151500701904.dp,
+//                            top = 3.257575750350952.dp,
+//                            end = 6.515151500701904.dp,
+//                            bottom = 3.257575750350952.dp
+//                        )
+//
+//                        .alpha(1f),
 
-                        .padding(
-                            start = 6.515151500701904.dp,
-                            top = 3.257575750350952.dp,
-                            end = 6.515151500701904.dp,
-                            bottom = 3.257575750350952.dp
-                        )
-
-                        .alpha(1f)
-                        .zIndex(1f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Switch(
-                        checked = viewModel.toggleState1.value,
-                        onCheckedChange = {
-                            viewModel.updateToggleState1(it)
-                        }
-                    )
+//                    Switch(
+//                        checked = viewModel.toggleState1.value,
+//                        onCheckedChange = {
+//                            viewModel.updateToggleState1(it)
+//                        }
+//                    )
+
+                    Box(
+                        modifier = Modifier
+                            .scale(1.3f) // Increase the scale of the Switch
+                    ) {
+                        Switch(
+                            checked = viewModel.toggleState1.value,
+                            onCheckedChange = {
+                                viewModel.updateToggleState1(it)
+                            }
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(60.dp))
+                Spacer(modifier = Modifier.height(30.dp))
 
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(30.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ){
+                  Column(modifier = Modifier
+                      .weight(1f)
+                      .fillMaxHeight()) {
+                      Image(
+                          painter = painterResource(id = R.drawable.sun), // Replace with your image name
+                          contentDescription = "My Image", // For accessibility
+                          modifier = Modifier.size(100.dp), // Adjust the size as needed
+                          contentScale = ContentScale.Fit // Adjust how the image should scale
+                      )
+
+                  }
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()) { Image(
+                        painter = painterResource(id = R.drawable.thermometer), // Replace with your image name
+                        contentDescription = "My Image", // For accessibility
+                        modifier = Modifier.size(100.dp), // Adjust the size as needed
+                        contentScale = ContentScale.Fit // Adjust how the image should scale
+                    ) }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // Two columns evenly placed side by side
                 Row(
                     modifier = Modifier
-                        .height(260.dp),
+                        .height(230.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Column(
@@ -194,8 +242,8 @@ fun SlidingPanel(
                             onValueChange = { viewModel.updateSlider1(it) },
                             modifier = Modifier
                                 .weight(1f)
-                                .zIndex(1f)
-                                .height(220.dp)
+
+                                .height(190.dp)
                         )
 
 
@@ -206,7 +254,6 @@ fun SlidingPanel(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .zIndex(1f)
                             .fillMaxHeight()
 //                            .background(Color.LightGray),
                             .clip(
@@ -230,8 +277,7 @@ fun SlidingPanel(
                             onValueChange = { viewModel.updateSlider2(it) },
                             modifier = Modifier
                                 .weight(1f)
-                                .zIndex(1f)
-                                .height(220.dp)
+                                .height(190.dp)
                         )
 
                     }
@@ -242,8 +288,8 @@ fun SlidingPanel(
                 Row(
                     modifier = Modifier
 
-                        .zIndex(1f)
-                        .height(50.dp)
+
+                        .height(60.dp)
                         .fillMaxWidth(),
 //                        .background(Color.Gray),
 //                        .clip(
@@ -293,17 +339,17 @@ fun SlidingPanel(
                             contentColor = if (!viewModel.toggleState2.value) Color.White else Color.Black
                         ),
                         modifier = Modifier.border(
-                            1.dp,
+                            2.dp,
                             if (!viewModel.toggleState2.value) Color.White else Color.Black,
                             shape = RoundedCornerShape(50)
                         )
                     ) {
-//                        Image(
-//                            painter = painterResource(id = if(!viewModel.toggleState2.value) R.drawable.boost else R.drawable.booston),
-//                            contentDescription = "Boost Image",
-//                            contentScale = ContentScale.FillBounds,
-//                            modifier = Modifier.width(30.dp).height(30.dp)
-//                        )
+                        Image(
+                            painter = painterResource(id = if(!viewModel.toggleState2.value) R.drawable.boost else R.drawable.booston),
+                            contentDescription = "Boost Image",
+                            contentScale = ContentScale.FillBounds,
+                            modifier = Modifier.width(30.dp).height(30.dp)
+                        )
                         Spacer(modifier = Modifier.width(20.dp))
                         Text(text = "Boost")
                     }
@@ -320,14 +366,14 @@ fun SlidingPanel(
                     modifier = Modifier
                         .offset {
                             IntOffset(
-                                detectionBoxOffsetX.value.roundToInt() - 285,
+//                                detectionBoxOffsetX.value.roundToInt() ,
+                                40,
                                 200
                             )
                         } // Stick to the left edge
 //                    .offset((20).dp, (200).dp)
                         .width(10.dp) // Small width for the cue
                         .height(200.dp)
-                        .zIndex(1f)
                         .background(Color.Gray.copy(alpha = 0.8f)) // Semi-transparent visual cue
                         .pointerInput(Unit) {
                             detectHorizontalDragGestures(
@@ -367,7 +413,6 @@ fun SlidingPanel(
                         .padding(end = 240.dp)
 //                    .width((screenWidthPx-panelWidthPx).dp)
                         .fillMaxSize()
-                        .zIndex(3f)
                         .background(Color.Transparent) // Semi-transparent overlay
 //                    .clickable {
 //                        // Close the panel when the overlay is clicked
@@ -405,13 +450,32 @@ fun SlidingPanel(
                 }
             }
 
+        LaunchedEffect(orientation) {
+            if (viewModel.isPanelVisible.value) {
+                scope.launch {
+                    panelOffsetX.animateTo(
+//                                    targetValue =screenWidthPx+panelWidthPx,
+                        targetValue = screenWidthPx,
+                        animationSpec = tween(
+                            durationMillis = 800,
+                            easing = FastOutSlowInEasing
+                        )
+                    ) // Close the panel
+                    updatePanelState(false)
+                    viewModel.closePanel()
+                    if (!viewModel.isPanelVisible.value) {
+                        panelOffsetX.snapTo(screenWidthPx)
+                    }
+                }
+            }
+        }
+
 
             // Gesture detection for dragging
             Box(
                 modifier = Modifier
                     .width(250.dp)
-                    .height(500.dp)
-                    .zIndex(2f)
+                    .height(530.dp)
                     .pointerInput(Unit) {
                         detectHorizontalDragGestures(
                             onHorizontalDrag = { _, dragAmount ->
@@ -494,7 +558,7 @@ fun BrightnessSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
-    sliderHeight: Dp = 230.dp,
+    sliderHeight: Dp = 200.dp,
     thumbSize: Dp = 60.dp,
     thumbWidth: Dp = 70.dp,
     thumbHeight: Dp = 30.dp,
@@ -521,8 +585,17 @@ fun BrightnessSlider(
         modifier = modifier
             .height(sliderHeight)
             .width(70.dp)
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    // Calculate the clicked value based on the y-coordinate
+                    val clickedValue = (1 - offset.y / sliderHeightPx).coerceIn(0f, 1f)
+                    dragOffset = (1 - clickedValue) * sliderHeightPx
+                    onValueChange(clickedValue)
+                }
+            }
     ) {
         // Percentage Text
+
 
 
         // Unfilled Track
@@ -531,7 +604,10 @@ fun BrightnessSlider(
                 .fillMaxHeight()
                 .width(trackWidth)
                 .align(Alignment.Center)
-                .background(unfilledTrackColor, shape = RoundedCornerShape(20.dp)) // Adjusted corner radius
+                .background(unfilledTrackColor,
+                    shape = RoundedCornerShape(
+                        20.dp
+                    )) // Adjusted corner radius
         ){
             Text(
                 text = "${(value * 100).toInt()}%",
@@ -547,7 +623,14 @@ fun BrightnessSlider(
                 .fillMaxHeight(fraction = value)
                 .width(trackWidth)
                 .align(Alignment.BottomCenter) // Align the filled track to the bottom
-                .background(filledTrackColor, shape = RoundedCornerShape(20.dp)) // Adjusted corner radius
+                .background(filledTrackColor,
+                    shape =
+                    RoundedCornerShape(
+                        topStart = 0.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 20.dp,
+                        bottomEnd = 20.dp
+                    )) // Adjusted corner radius
         )
 
         // Thumb
@@ -580,7 +663,7 @@ fun WarmthSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
-    sliderHeight: Dp = 230.dp,
+    sliderHeight: Dp = 200.dp,
     thumbSize: Dp = 60.dp,
     thumbWidth: Dp = 70.dp,
     thumbHeight: Dp = 30.dp,
@@ -612,6 +695,14 @@ fun WarmthSlider(
         modifier = modifier
             .height(sliderHeight)
             .width(70.dp)
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    // Calculate the clicked value based on the y-coordinate
+                    val clickedValue = (1 - offset.y / sliderHeightPx).coerceIn(0f, 1f)
+                    dragOffset = (1 - clickedValue) * sliderHeightPx
+                    onValueChange(clickedValue)
+                }
+            }
     ) {
         // Percentage Text
 
@@ -631,7 +722,10 @@ fun WarmthSlider(
                 .fillMaxHeight(fraction = value)
                 .width(trackWidth)
                 .align(Alignment.BottomCenter) // Align the filled track to the bottom
-                .background(filledTrackColor, shape = RoundedCornerShape(20.dp)) // Adjusted corner radius
+                .background(filledTrackColor, shape =
+                RoundedCornerShape(
+                    20.dp
+                )) // Adjusted corner radius
         )
 
         // Thumb
