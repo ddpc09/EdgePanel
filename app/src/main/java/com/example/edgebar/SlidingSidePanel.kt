@@ -62,6 +62,12 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.graphicsLayer
 
 
 @SuppressLint("UnrememberedMutableInteractionSource")
@@ -71,7 +77,7 @@ fun SlidingPanel(
     updatePanelState: (Boolean) -> Unit // Callback to update panel layout state
 ) {
     val scope = rememberCoroutineScope()
-    val panelHeight = 530.dp
+    val panelHeight = 500.dp
     val panelWidthPx = with(LocalDensity.current) { 250.dp.toPx() }
 //    val panelOffsetX = remember { Animatable(panelWidthPx) } // Start fully closed
     var screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() } // Screen width in pixels
@@ -483,7 +489,7 @@ fun SlidingPanel(
             Box(
                 modifier = Modifier
                     .width(250.dp)
-                    .height(530.dp)
+                    .height(500.dp)
                     .pointerInput(Unit) {
                         detectHorizontalDragGestures(
                             onHorizontalDrag = { _, dragAmount ->
@@ -575,7 +581,11 @@ fun BrightnessSlider(
     trackWidth: Dp = 60.dp,
     filledTrackColor: Color = Color.White,
     unfilledTrackColor: Color = Color.DarkGray,
-    gradientColors: List<Color> = listOf(Color.White,Color.LightGray),
+    cornerRadius: Dp = 4.dp,
+    shadowElevation: Dp = 12.dp, // Elevation for the shadow
+    shadowColor: Color = Color.Black.copy(alpha = 1f),
+    gradientSliderColors: List<Color> = listOf(Color.White,Color.Gray),
+    gradientThumbColors: List<Color> = listOf(Color.White,Color.Gray),
     textColor: Color = Color.White,
 
 ) {
@@ -618,7 +628,7 @@ fun BrightnessSlider(
                 .align(Alignment.Center)
                 .background(unfilledTrackColor,
                     shape = RoundedCornerShape(
-                        20.dp
+                        15.dp
                     )) // Adjusted corner radius
         ){
             Text(
@@ -630,31 +640,55 @@ fun BrightnessSlider(
         }
 
         // Filled Track
-        Box(
+        Canvas(
             modifier = Modifier
-                .fillMaxHeight(fraction = value)
+                .fillMaxHeight()
+                .offset(y = (thumbHeight / 10))
                 .width(trackWidth)
-                .align(Alignment.BottomCenter) // Align the filled track to the bottom
-                .background(brush = Brush.verticalGradient(
-                    colors = gradientColors,
-                    startY = 0f,
-                    endY = gradientHeightPx,
-                ),
-                    shape =
-                    RoundedCornerShape(
-                        topStart = 0.dp,
-                        topEnd = 0.dp,
-                        bottomStart = 20.dp,
-                        bottomEnd = 20.dp
-                    )) // Adjusted corner radius
-        )
+                .align(Alignment.Center)
+//                .background(color = Color.Transparent,
+//                    shape =
+//                    RoundedCornerShape(
+//                        topStart = 20.dp,
+//                        topEnd = 20.dp,
+//                        bottomStart = 20.dp,
+//                        bottomEnd = 20.dp
+//                    ))
+        ) {
+
+            // Calculate the height of the filled portion
+            val filledHeight = size.height * value
+
+            // Draw the gradient starting from the bottom
+            val gradient = Brush.verticalGradient(
+                colors = gradientSliderColors,
+                startY = 0f,
+                endY = size.height
+            )
+            drawRoundRect(
+                brush = gradient,
+                topLeft = Offset(x = 0f, y = size.height - filledHeight), // Start from bottom
+                size = Size(width = size.width, height = filledHeight),
+                cornerRadius = CornerRadius(15f,15f)
+            )
+        }
 
         // Thumb
         Box(
             modifier = Modifier
                 .offset { IntOffset(0, dragOffset.roundToInt()) }
                 .size(width = thumbWidth, height = thumbHeight)
-                .background(thumbColor, shape = RoundedCornerShape(10.dp)) // Ensure thumb matches
+                .shadow(
+                    elevation = shadowElevation,
+                    shape = RoundedCornerShape(cornerRadius),
+                    ambientColor = shadowColor,
+                    spotColor = shadowColor
+                )
+                .background(brush = Brush.verticalGradient(
+                    colors = gradientThumbColors,
+                    startY = 0f,
+                    endY = 30f
+                ), shape = RoundedCornerShape(20.dp)) // Ensure thumb matches
                 .draggable(
                     orientation = Orientation.Vertical,
                     state = rememberDraggableState { delta ->
@@ -685,18 +719,28 @@ fun WarmthSlider(
     thumbHeight: Dp = 30.dp,
     thumbColor: Color = Color.White,
     trackWidth: Dp = 60.dp,
-    filledTrackColor: Color = Color(
+    cornerRadiusPx: Dp = 10.dp,
+    shadowElevation: Dp = 12.dp, // Higher elevation for a stronger shadow
+    shadowColor: Color = Color.Black.copy(alpha = 1f), // Slightly darker shadow
+    cornerRadius: Dp = 16.dp,
+    gradientSliderColors: List<Color> = listOf(Color(
         red = 1.00f,
         green = 1.00f,
         blue = 0.639f,
         alpha = 1f
-    ),
-    gradientColors: List<Color> = listOf(Color.White,Color.Yellow),
+    ),Color.White),
+    gradientThumbColors: List<Color> = listOf(Color(
+        red = 1.00f,
+        green = 1.00f,
+        blue = 0.639f,
+        alpha = 1f
+    ),Color.White),
     unfilledTrackColor: Color = Color.DarkGray,
     textColor: Color = Color.White
 ) {
     val sliderHeightPx = with(LocalDensity.current) { sliderHeight.toPx() }
     val thumbSizePx = with(LocalDensity.current) { thumbSize.toPx() }
+    val shadowElevationPx = with(LocalDensity.current) { shadowElevation.toPx() }
     val scope = rememberCoroutineScope()
 
     // Track current drag offset
@@ -730,31 +774,80 @@ fun WarmthSlider(
                 .fillMaxHeight()
                 .width(trackWidth)
                 .align(Alignment.Center)
-                .background(unfilledTrackColor, shape = RoundedCornerShape(20.dp)) // Adjusted corner radius
+                .background(unfilledTrackColor, shape = RoundedCornerShape(15.dp)) // Adjusted corner radius
         )
-
-        // Filled Track
-        Box(
+//
+//        // Filled Track
+//        Box(
+//            modifier = Modifier
+//                .fillMaxHeight(fraction = value)
+//                .offset(y = (thumbHeight / 10))
+//                .width(trackWidth)
+//                .align(Alignment.BottomCenter) // Align the filled track to the bottom
+//                .background(brush = Brush.verticalGradient(
+//                    colors = gradientColors,
+//                    startY = 0f,
+//                    endY = sliderHeightPx
+//                ),
+//                    shape =
+//                RoundedCornerShape(
+//                    topStart = 0.dp,
+//                    topEnd = 0.dp,
+//                    bottomStart = 20.dp,
+//                    bottomEnd = 20.dp
+//                )) // Adjusted corner radius
+//        )
+        Canvas(
             modifier = Modifier
-                .fillMaxHeight(fraction = value)
+                .fillMaxHeight()
+                .offset(y = (thumbHeight / 10))
                 .width(trackWidth)
-                .align(Alignment.BottomCenter) // Align the filled track to the bottom
-                .background(brush = Brush.verticalGradient(
-                    colors = gradientColors,
-                    startY = 0f,
-                    endY = sliderHeightPx
-                ), shape =
-                RoundedCornerShape(
-                    20.dp
-                )) // Adjusted corner radius
-        )
+                .align(Alignment.Center)
+                .background(color = Color.Transparent,
+                    shape =
+                    RoundedCornerShape(
+                        topStart = 20.dp,
+                        topEnd = 20.dp,
+                        bottomStart = 20.dp,
+                        bottomEnd = 20.dp
+                    ))
+        ) {
 
+            // Calculate the height of the filled portion
+            val filledHeight = size.height * value
+
+            // Draw the gradient starting from the bottom
+            val gradient = Brush.verticalGradient(
+                colors = gradientSliderColors,
+                startY = 0f,
+                endY = size.height
+            )
+            drawRoundRect(
+                brush = gradient,
+                topLeft = Offset(x = 0f, y = size.height - filledHeight), // Start from bottom
+                size = Size(width = size.width, height = filledHeight),
+                cornerRadius = CornerRadius(15f, 15f)
+            )
+        }
         // Thumb
         Box(
             modifier = Modifier
                 .offset { IntOffset(0, dragOffset.roundToInt()) }
                 .size(width = thumbWidth, height = thumbHeight)
-                .background(thumbColor, shape = RoundedCornerShape(10.dp)) // Ensure thumb matches
+                .shadow(
+                    elevation = shadowElevation,
+                    shape = RoundedCornerShape(cornerRadius),
+                    ambientColor = shadowColor,
+                    spotColor = shadowColor
+                )
+
+                .background(brush = Brush.verticalGradient(
+                    colors = gradientThumbColors,
+                    startY = 0f,
+                    endY = 60f
+                ),
+
+                    shape = RoundedCornerShape(10.dp)) // Ensure thumb matches
                 .draggable(
                     orientation = Orientation.Vertical,
                     state = rememberDraggableState { delta ->
@@ -769,6 +862,11 @@ fun WarmthSlider(
         )
     }
 }
+
+
+
+
+
 
 
 
