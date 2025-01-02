@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,13 +44,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -62,12 +64,6 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
-import androidx.compose.foundation.Canvas
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.graphicsLayer
 
 
 @SuppressLint("UnrememberedMutableInteractionSource")
@@ -77,8 +73,8 @@ fun SlidingPanel(
     updatePanelState: (Boolean) -> Unit // Callback to update panel layout state
 ) {
     val scope = rememberCoroutineScope()
-    val panelHeight = 500.dp
-    val panelWidthPx = with(LocalDensity.current) { 250.dp.toPx() }
+    val panelHeight = 500.dp//panel height
+    val panelWidthPx = with(LocalDensity.current) { 250.dp.toPx() }//panel width
 //    val panelOffsetX = remember { Animatable(panelWidthPx) } // Start fully closed
     var screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() } // Screen width in pixels
     var panelOffsetX = remember { Animatable(screenWidthPx) }
@@ -98,7 +94,7 @@ fun SlidingPanel(
 //                .offset { IntOffset((panelOffsetX.value + panelWidthPx).roundToInt(), 0) }
                 .width(250.dp)
                 .height(panelHeight)
-//                .background(Color.Red)
+//                .background(Color.Red) //for testing
 
                 .clip(
                     RoundedCornerShape(
@@ -108,8 +104,6 @@ fun SlidingPanel(
                         bottomEnd = 0.dp
                     )
                 )
-
-
                 .background(Color(red = 0f, green = 0f, blue = 0f, alpha = 0.65f))
 
         ) {
@@ -117,13 +111,6 @@ fun SlidingPanel(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
-//                    .border(1.dp, color = Color.LightGray.copy(alpha = 0.2f), shape = RoundedCornerShape(
-//                        topStart = 63.86111831665039.dp,
-//                        topEnd = 0.dp,
-//                        bottomStart = 63.86111831665039.dp,
-//                        bottomEnd = 0.dp
-//                    ))
-
             ) {
                 Spacer(modifier = Modifier.height(20.dp))
                 // Row at the top
@@ -131,44 +118,9 @@ fun SlidingPanel(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp),
-//                        .background(Color.Gray)
-//                        .clip(
-//                            RoundedCornerShape(
-//                                topStart = 162.8787841796875.dp,
-//                                topEnd = 162.8787841796875.dp,
-//                                bottomStart = 162.8787841796875.dp,
-//                                bottomEnd = 162.8787841796875.dp
-//                            )
-//                        )
-//                        .background(
-//                            Color(
-//                                red = 0.4745098f,
-//                                green = 0.45490196f,
-//                                blue = 0.49411765f,
-//                                alpha = 1f
-//                            )
-//                        )
-//                        .background(Transparent)
-//
-//                        .padding(
-//                            start = 6.515151500701904.dp,
-//                            top = 3.257575750350952.dp,
-//                            end = 6.515151500701904.dp,
-//                            bottom = 3.257575750350952.dp
-//                        )
-//
-//                        .alpha(1f),
-
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-//                    Switch(
-//                        checked = viewModel.toggleState1.value,
-//                        onCheckedChange = {
-//                            viewModel.updateToggleState1(it)
-//                        }
-//                    )
-
                     Box(
                         modifier = Modifier
                             .scale(1.3f) // Increase the scale of the Switch
@@ -226,27 +178,6 @@ fun SlidingPanel(
                             .weight(1f)
                             .zIndex(1f)
                             .fillMaxHeight(),
-//                            .clip(
-//                                RoundedCornerShape(
-//                                    topStart = 26.041950225830078.dp,
-//                                    topEnd = 26.041950225830078.dp,
-//                                    bottomStart = 26.041950225830078.dp,
-//                                    bottomEnd = 26.041950225830078.dp
-//                                )
-//                            )
-//                            .clip(
-//                                RoundedCornerShape(
-//                                    topStart = 13.041950225830078.dp,
-//                                    topEnd = 13.041950225830078.dp,
-//                                    bottomStart = 13.041950225830078.dp,
-//                                    bottomEnd = 13.041950225830078.dp
-//                                )
-//                            )
-//
-//
-////                            .background(Color(red = 0f, green = 0f, blue = 0f, alpha = 0.38f)),
-//                            .background(Transparent),
-//                            .background(Color.LightGray),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -256,11 +187,8 @@ fun SlidingPanel(
                             onValueChange = { viewModel.updateSlider1(it) },
                             modifier = Modifier
                                 .weight(1f)
-
                                 .height(180.dp)
                         )
-
-
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))
@@ -269,20 +197,6 @@ fun SlidingPanel(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
-//                            .background(Color.LightGray),
-//                            .clip(
-//                                RoundedCornerShape(
-//                                    topStart = 13.041950225830078.dp,
-//                                    topEnd = 13.041950225830078.dp,
-//                                    bottomStart = 13.041950225830078.dp,
-//                                    bottomEnd = 13.041950225830078.dp
-//                                )
-//                            )
-//                            .background(Color.Transparent)
-//
-//                            .padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 0.dp)
-//
-//                            .alpha(1f),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -301,44 +215,8 @@ fun SlidingPanel(
                 // Row at the bottom with a ToggleButton
                 Row(
                     modifier = Modifier
-
-
                         .height(60.dp)
                         .fillMaxWidth(),
-//                        .background(Color.Gray),
-//                        .clip(
-//                            RoundedCornerShape(
-//                                topStart = 68.90278625488281.dp,
-//                                topEnd = 68.90278625488281.dp,
-//                                bottomStart = 68.90278625488281.dp,
-//                                bottomEnd = 68.90278625488281.dp
-//                            )
-//                        )
-//                        .background(Color.Transparent)
-//                        .border(
-//                            1.680555820465088.dp,
-//                            Color(
-//                                red = 1f,
-//                                green = 1f,
-//                                blue = 0.8611109f,
-//                                alpha = 0.2f
-//                            ),
-//                            RoundedCornerShape(
-//                                topStart = 68.90278625488281.dp,
-//                                topEnd = 68.90278625488281.dp,
-//                                bottomStart = 68.90278625488281.dp,
-//                                bottomEnd = 68.90278625488281.dp
-//                            )
-//                        )
-//                        .padding(
-//                            start = 20.166669845581055.dp,
-//                            top = 20.166669845581055.dp,
-//                            end = 20.166669845581055.dp,
-//                            bottom = 20.166669845581055.dp
-//                        )
-//
-//                        .alpha(1f),
-
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -373,7 +251,7 @@ fun SlidingPanel(
             }
         }
 
-            // Visual cue when the panel is closed
+            // Visual cue bar when the panel is closed
             if (!viewModel.isPanelVisible.value && !(accumulatedDrag < -dragThreshold)) {
                 println("DetectionBoxvalue: ${detectionBoxOffsetX.value}")
                 Box(
@@ -428,16 +306,6 @@ fun SlidingPanel(
 //                    .width((screenWidthPx-panelWidthPx).dp)
                         .fillMaxSize()
                         .background(Color.Transparent) // Semi-transparent overlay
-//                    .clickable {
-//                        // Close the panel when the overlay is clicked
-//
-//                        scope.launch {
-//                            panelOffsetX.animateTo(screenWidthPx+panelWidthPx) // Close the panel
-//                            updatePanelState(false)
-//                            viewModel.closePanel()
-//                        }
-//                    }
-
                         .clickable(
                             interactionSource = MutableInteractionSource(),
                             indication = null
@@ -463,7 +331,7 @@ fun SlidingPanel(
                     println("Click registered")
                 }
             }
-
+//      Calculate screen width again in case the device rotation change
         LaunchedEffect(orientation) {
             if (viewModel.isPanelVisible.value) {
                 scope.launch {
@@ -566,7 +434,7 @@ fun SlidingPanel(
     }
 }
 
-
+// Custom Brightness Slider
 @Composable
 fun BrightnessSlider(
     value: Float,
@@ -616,7 +484,6 @@ fun BrightnessSlider(
                 }
             }
     ) {
-        // Percentage Text
 
 
 
@@ -646,14 +513,6 @@ fun BrightnessSlider(
                 .offset(y = (thumbHeight / 10))
                 .width(trackWidth)
                 .align(Alignment.Center)
-//                .background(color = Color.Transparent,
-//                    shape =
-//                    RoundedCornerShape(
-//                        topStart = 20.dp,
-//                        topEnd = 20.dp,
-//                        bottomStart = 20.dp,
-//                        bottomEnd = 20.dp
-//                    ))
         ) {
 
             // Calculate the height of the filled portion
@@ -707,7 +566,7 @@ fun BrightnessSlider(
 
 
 
-
+// Custom warmth slider
 @Composable
 fun WarmthSlider(
     value: Float,
@@ -776,27 +635,6 @@ fun WarmthSlider(
                 .align(Alignment.Center)
                 .background(unfilledTrackColor, shape = RoundedCornerShape(15.dp)) // Adjusted corner radius
         )
-//
-//        // Filled Track
-//        Box(
-//            modifier = Modifier
-//                .fillMaxHeight(fraction = value)
-//                .offset(y = (thumbHeight / 10))
-//                .width(trackWidth)
-//                .align(Alignment.BottomCenter) // Align the filled track to the bottom
-//                .background(brush = Brush.verticalGradient(
-//                    colors = gradientColors,
-//                    startY = 0f,
-//                    endY = sliderHeightPx
-//                ),
-//                    shape =
-//                RoundedCornerShape(
-//                    topStart = 0.dp,
-//                    topEnd = 0.dp,
-//                    bottomStart = 20.dp,
-//                    bottomEnd = 20.dp
-//                )) // Adjusted corner radius
-//        )
         Canvas(
             modifier = Modifier
                 .fillMaxHeight()

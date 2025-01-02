@@ -23,27 +23,24 @@ class SlidingPanelViewModel : ViewModel() {
         isPanelVisible.value = false
     }
 
-//     Methods to update slider values
+//  Methods to update brightness slider
     fun updateSlider1(value: Float) {
         sliderValue1.floatValue = value
     }
+    // Method to update warmth slider
 
     fun updateSlider2(value: Float) {
         sliderValue2.floatValue = value
     }
 
-    // Method to update toggle state
+    // Method to update power button
     fun updateToggleState1(state: Boolean) {
         toggleState1.value = state
     }
 
+    //Method to update power button
     fun updateToggleState2(state: Boolean) {
         toggleState2.value = state
     }
-
-
-
-
-
 
 }
